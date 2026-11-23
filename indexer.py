@@ -1,9 +1,12 @@
 import time
 import os
+from dotenv import load_dotenv 
 from site_config import RESTRICTED_SITES
 from scraping import scrape_fextralife
 from openai import OpenAI
 import ollama
+
+load_dotenv()
 
 LANGUAGE_MODEL = 'hf.co/bartowski/Llama-3.2-1B-Instruct-GGUF'
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
@@ -48,7 +51,6 @@ def retrieve(query, top_n=3):
     # temporary list to hold (chunk, similarity) tuples
     similarities = []
     for chunk, embedding in VECTOR_DB:
-        print(embedding, query_embedding)
         similarity = cosine_similarity(query_embedding, embedding)
         similarities.append((chunk, similarity))
     # sort by similarity in descending order, higher similarity = more relevant
