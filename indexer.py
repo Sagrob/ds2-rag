@@ -1,6 +1,6 @@
 import time
 import os
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 from site_config import RESTRICTED_SITES
 from scraping import scrape_fextralife
 from openai import OpenAI
@@ -74,40 +74,35 @@ formatted_context = "\n\n".join(
 )
 
 
-instruction_prompt = f"""
-    You are a Dark Souls 2 expert assistant. Answer the user's question using ONLY the facts provided inside the <context> tags below.
+system_prompt = """You are a Dark Souls 2 expert assistant. Answer the user's question using ONLY the facts provided inside the <context> tags.
 
-    INSTRUCTIONS:
-    1. State the answer directly as an established fact, without meta-commentary or citations (never mention "context", "text", "information", or "provided").
-    2. Keep the response concise, objective, and verbose.
-    3. Answer in the exact same language as the user's question.
-    4. If the <context> does not contain the answer, reply strictly with: "I don't know."
-
-    EXAMPLE:
-    <context>
-    Page: Pyromancy Flame | Dark Souls 2 Wiki
-    The Pyromancy Flame is a catalyst used to cast Pyromancies.
-    </context>
-    Question: What does the Pyromancy Flame cast?
-    Answer: The Pyromancy Flame is a catalyst used to cast Pyromancies.
-
-    ---
-
-    <context>
-    {formatted_context}
-    </context>
-
-    Question: {question}
-    Answer:
+RULES:
+1. Write complete, natural, and well-explained sentences (never reply with single words or fragments).
+2. Gather and include ALL relevant facts, types, or details found across the excerpts—do not stop at the first detail you find.
+3. State the answer directly as an established fact, without meta-commentary (never mention "context", "excerpts", "text", or "provided").
+4. Answer in the exact same language as the user's question.
+5. If the <context> does not contain the answer, reply strictly with: "I don't know."
 """
 
+user_prompt = f"""<context>
+{formatted_context}
+</context>
+
+Question: {question}"""
+
+print(formatted_context[:500])
+
 stream = ollama.chat(
-  model=LANGUAGE_MODEL,
-  messages=[
-    {'role': 'system', 'content': instruction_prompt},
-    {'role': 'user', 'content': question},
-  ],
-  stream=True,
+    model=LANGUAGE_MODEL,
+    messages=[
+        {'role': 'system', 'content': system_prompt},
+        {'role': 'user', 'content': user_prompt},
+    ],
+    options={
+        'temperature': 0.2,
+        'num_ctx': 8192,
+    },
+    stream=True,
 )
 
 print(f"user question: {question}") 
